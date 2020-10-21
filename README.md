@@ -41,8 +41,7 @@ In terms of implementing the drawing operations, the following user stories can 
 * User creates a new picture. The picture ID is returned.
 * User draws a number of graphical elements by providing a set of commands (messages). Each command
 specifies type of object to be drawn, its coordinates on the canvas, (possibly) data object that
-is represented by the object (e.g. slice of massive data object). The ID of the created object is returned
-for every command.
+is represented by the object (e.g. slice of massive data object). 
 * User requests rendering the picture in some particular format and downloads the resulting picture.
 
 ---
@@ -59,24 +58,33 @@ The implementation of the application may use the following classes (types of ob
 * Text
 * DataSlice - object inheriting from Rectangle, represents picture of a given data slice
 
+Also, there are auxiliary classes (Picture, DataObjectID, etc.) that are mentioned in
+pseudo-code, but are not discussed at the moment. Its meaning is considered to be a self-explanatory one.
+
 ---
 
 # Pseudo-code
 
+## Classes relationship
+
     class Canvas {
         private List<Shape> elements;
-        public draw(Shape s) {
-            for el in elements:
-            el.draw(this);
+        public addElement(Shape s) {
+            elements += s;
         }
+        public Picture render(PictureFormat format) {
+            Picture resultingPicture = newPicture(format)
+            for el in elements:
+                el.draw(resultingPicture);
+            return resultingPicture;
+        }
+        public CanvasID getID();
     };
 
 
     class Shape {
         private [int x, int y] coordinates;
-        public draw(Canvas c){
-            // Implementation of drawing a point on canvas
-        } 
+        public draw(Picture c) // Implementation of drawing a point on a Picture
     };
 
     class Point inherit Shape;
@@ -85,18 +93,26 @@ The implementation of the application may use the following classes (types of ob
 
     class Rectangle inherit Shape {
         private [int x, int y] lowerRightPoint;
-        public draw(Canvas c);
+        public draw(Picture c);
     }
 
     class Text {
         private String text;
         constructor Text(String t); // Assigns text to the argument
-        public draw(Canvas c);
+        public draw(Picture c);
     }
 
     class DataSlice inherits Rectangle {
         private SliceParameters sliceParams;
         constructor DataSlice(DataObjectID dataID, SliceParameters p);
-        public draw(Canvas c);
+        public draw(Picture c);
     }
 
+
+## Possible usage pseudo-code
+
+    canvas = new Canvas();
+    canvas.addElement(new Text("New drawing"));
+    canvas.addElement(new DataSlice(aDataObjectID));
+    picture = canvas.render("SVG");
+    // return picture to user via some framework
